@@ -10,6 +10,7 @@ from zipfile import ZipFile
 CHECK_FOR_UPDATES = True
 VERSION = "3.6WIP" #DO NOT CHANGE THIS YOURSELF!
 
+
 run_time = datetime.now().strftime("%Y-%m-%d")
 def log(text, end = "\n"):
 	"""
@@ -20,74 +21,76 @@ def log(text, end = "\n"):
 	with open(f"RMMUDLogs/{run_time}.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
 	with open(f"RMMUDLogs/latest.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
 
+
 def logExit(text, end = "\n"):
 	log(text, end = end)
 	input("PRESS ANY KEY TO EXIT.")
 	exit()
 
-def download_latest_version():
+
+def checkForScriptUpdate():
+	print("[INFO] CHECKING FOR SCRIPT UPDATES:")
 	try:
-		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/RMMUD/releases/latest").json()
-		print(json.dumps(github_latest_version, indent = "\t"))
-		#rmmud_download_url = github_latest_version["assets"]["browser_download_url"]
-		#rmmud_file_name = github_latest_version["assets"]["name"]
-		#open(rmmud_file_name, "wb").write(requests.get(rmmud_download_url).content).close()
-		#with zipfile.ZipFile(rmmud_file_name, "r") as zip:
-		#	zip.extractall().close()
+		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
+		github_version = str(github_latest_version['tag_name'])
 	except Exception as e:
-		log(f"	[WARN] Could not download latest version. {repr(e)}")
+		if github_latest_version["message"][:23] == "API rate limit exceeded":
+			reset_time = round((requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"] - datetime.now().timestamp()) / 60, 1)
+			print(f"	[WARN] Could not retreive latest GitHub release version due to exceeding API limit. It wil reset in {reset_time} minutes. Canceling auto-update.")
+		else:
+			print(f"	[WARN] Could not retreive latest GitHub release version. Canceling auto-update. {repr(e)}")
+		return
+
+	if VERSION == github_version:
+		print(f"	You have the latest release!")
+	elif len(VERSION) > 3 and VERSION[:3] <= github_version:
+		print(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
+		downloadLatestRelease(github_latest_version)
+	elif len(VERSION) > 3 and not VERSION[:3] <= github_version:
+		print(f"	Working on a new release ay? Good luck!")
+	elif VERSION < github_version:
+		print(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
+		downloadLatestRelease(github_latest_version)
+	elif VERSION > github_version:
+		print(f"	Your updater is... wait... says here that I am more up to date than the latest release? How did you manage to do that...? HOW??")
+
+
+def downloadLatestRelease(github_data):
+	rmmud_data = [asset for asset in github_data["assets"] if asset["name"] == "RMMUD.py"]
+	try:
+		rmmud_data[0]
+	except:
+		print(f"	[WARN] Error retreiving RMMUD.py asset from GitHub. Canceling auto-update.")
+		return
+
+	download_url = rmmud_data["browser_download_url"]
+	file_name = rmmud_data["name"]
+
+	print(f"	Downloading RMMUD.py...")
+	try:
+		open(file_name, "wb").write(requests.get(download_url).content).close()
+		print(f"	[Info] Downloaded {file_name} V{github_data['tag_name']}")
+		import RMMUD
+		exit()
+	except Exception as e:
+		print(f"	[WARN] Error downloading RMMUD.py. Canceling auto-update. {repr(e)}")
+
 
 def main():
 	if os.path.exists("RMMUDLogs/latest.log"): open("RMMUDLogs/latest.log", "w").close() #Clears latest.log
 	log(f"[{datetime.now()}] RUNNING RMMUD")
 
-	"""CHECKING FOR LATEST RELEASE"""
-	if CHECK_FOR_UPDATES:
-		log("[INFO] CHECKING FOR SCRIPT UPDATES:")
-		try:
-			github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
-			github_version = str(github_latest_version['tag_name'])
-		except Exception as e:
-			if github_latest_version["message"][:23] == "API rate limit exceeded":
-				r = requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"]
-				log(f"	[WARN] Could not retreive latest GitHub release version due to exceeding API limit. It wil reset in {round((r - datetime.now().timestamp())/60, 1)} minutes.")
-			else:
-				log(f"	[WARN] Could not retreive latest GitHub release version. {repr(e)}")
-			exit()
-		try:
-			if github_version:
-				try:
-					current_version = VERSION
-
-					if current_version == github_version:
-						log(f"	You have the latest release!")
-					elif len(current_version) > 3:
-						if current_version[:3] <= github_version:
-							log(f"	Your updater is out of date, running a developmental build! Please update to the latest release for the most recent features and fixes! {current_version} -> {github_version}. https://github.com/RandomGgames/MMUD/releases/latest")
-							log(f"	Continuing in 10 seconds... Close now if you wish to update before running!")
-							time.sleep(10)
-						else:
-							log(f"	Working on a new release ay? Good luck!")
-					else:
-						if current_version < github_version:
-							log(f"	Your updater is out of date! Please update to the latest release for the most recent features and fixes! {current_version} -> {github_version}. https://github.com/RandomGgames/MMUD/releases/latest")
-							log(f"	Continuing in 10 seconds... Close now if you wish to update before running!")
-							time.sleep(10)
-						else:
-							log(f"	You updater is... more up to date than the latest release? {current_version} > {github_version}... How did you manage to do that...?")
-				except:
-					log(f"	Your updater is out of date! Please update to the latest release for the most recent features and fixes! {current_version} -> {github_version}. https://github.com/RandomGgames/MMUD/releases/latest")
-					log(f"	Continuing in 10 seconds... Close now if you wish to update before running!")
-					time.sleep(10)
-		except:
-			pass
+	"""
+	CHECKING FOR UPDATE
+	"""
+	checkForScriptUpdate()
 
 	"""
 	LOAD CONFIG
 	"""
 	log("[INFO] LOADING CONFIG:")
 	try:
-		with open("MMUDConfig.json") as f:
+		with open("RMMUDConfig.json") as f:
 			config = json.load(f)
 			download_mods_location = config["download_mods_location"]
 			instances = config["instances"]
@@ -100,7 +103,7 @@ def main():
 		os.makedirs(download_mods_location)
 		log(f"	[INFO] Created folder {download_mods_location}")
 
-	"""UPDATING MODS"""
+	"""UPDATING/DOWNLOADING MODS"""
 	log("[INFO] PROCESSING LIST OF MODS:")
 	cache = {}
 	for instance_index, instance in enumerate(instances):
@@ -126,19 +129,21 @@ def main():
 
 		if loader == "fabric":
 			curseforge_modLoaderType = 4
-			log(f"	Updating {version} mods in {mods_directory}...")
+			log(f"	Processing {version} mods in {mods_directory}...")
 
 			for link in links:
-				if link[-1] == "/": link = link[:-1] #Remove trailing / from link sif it has one at the end
+				try:
+					if link[-1] == "/": link = link[:-1] #Remove trailing / from link sif it has one at the end
+				except: pass
 
 				if link[0:45] == "https://www.curseforge.com/minecraft/mc-mods/":
 					if link[45:len(link)] != "":
 						slug = link[45:len(link)]
 						if not any(x in slug for x in ["/", " ", "\\"]):
-							log(f"		Updating: {slug}")
+							log(f"		Processing: {slug}")
 
 							if link not in cache or version not in cache[link]['versions']:
-								log(f"			Caching {slug} for {version}...")
+								#log(f"			Caching {slug} for {version}...")
 
 								try:
 									curseforge_mod = requests.get("https://api.curseforge.com/v1/mods/search", params = {"gameId": "432","slug": slug, "classId": "6"}, headers = headers).json()["data"]
@@ -190,10 +195,10 @@ def main():
 					if link[25:len(link)] != "":
 						slug = link[25:len(link)]
 						if not any(x in slug for x in ["/", " ", "\\"]):
-							log(f"		Updating: {slug}")
+							log(f"		Processing: {slug}")
 
 							if link not in cache or version not in cache[link]['versions']:
-								log(f"			Caching {slug} for {version}...")
+								#log(f"			Caching {slug} for {version}...")
 
 								try:
 									modrinth_versions = requests.get(f'https://api.modrinth.com/v2/project/{slug}/version?game_versions=["{version}"]&loaders=["{loader}"]').json()
@@ -288,9 +293,10 @@ def main():
 		else: log(f"		[WARN] Could not find {directory}.")
 
 	log("DONE\n")
-	print("Updater will close in 10 seconds...")
+	print("RMMUD will close in 10 seconds...")
 	time.sleep(10)
 	exit()
+
 
 if __name__ == "__main__":
 	main()
