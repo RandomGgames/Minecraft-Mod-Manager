@@ -15,10 +15,10 @@ def log(text, end = "\n"):
 	"""
 	Prints text to the console and appends date, time, and text to a logs.txt file text. class str. The text to log
 	"""
-	if not os.path.exists("MMUDLogs"): os.makedirs("MMUDLogs")
+	if not os.path.exists("RMMUDLogs"): os.makedirs("RMMUDLogs")
 	print(str(text), end = end)
-	with open(f"MMUDLogs/{run_time}.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
-	with open(f"MMUDLogs/latest.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
+	with open(f"RMMUDLogs/{run_time}.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
+	with open(f"RMMUDLogs/latest.log", "a", encoding="UTF-8") as file: file.write(f"{str(text)}\n")
 
 def logExit(text, end = "\n"):
 	log(text, end = end)
@@ -27,31 +27,32 @@ def logExit(text, end = "\n"):
 
 def download_latest_version():
 	try:
-		github_info = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
-		mod_manager_download_url = github_info["assets"]["browser_download_url"]
-		mod_manager_file_name = github_info["assets"]["name"]
-		open(mod_manager_file_name, "wb").write(requests.get(mod_manager_download_url).content).close()
-		with zipfile.ZipFile(mod_manager_file_name, "r") as zip:
-			zip.extractall().close()
+		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/RMMUD/releases/latest").json()
+		print(json.dumps(github_latest_version, indent = "\t"))
+		#rmmud_download_url = github_latest_version["assets"]["browser_download_url"]
+		#rmmud_file_name = github_latest_version["assets"]["name"]
+		#open(rmmud_file_name, "wb").write(requests.get(rmmud_download_url).content).close()
+		#with zipfile.ZipFile(rmmud_file_name, "r") as zip:
+		#	zip.extractall().close()
 	except Exception as e:
 		log(f"	[WARN] Could not download latest version. {repr(e)}")
 
 def main():
-	if os.path.exists("MMUDLogs/latest.log"): open("MMUDLogs/latest.log", "w").close()
-	log(f"[{datetime.now()}] RUNNING MOD UPDATER")
+	if os.path.exists("RMMUDLogs/latest.log"): open("RMMUDLogs/latest.log", "w").close() #Clears latest.log
+	log(f"[{datetime.now()}] RUNNING RMMUD")
 
 	"""CHECKING FOR LATEST RELEASE"""
 	if CHECK_FOR_UPDATES:
 		log("[INFO] CHECKING FOR SCRIPT UPDATES:")
 		try:
-			r = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
-			github_version = str(r['tag_name'])
-		except:
-			if r["message"][:23] == "API rate limit exceeded":
+			github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
+			github_version = str(github_latest_version['tag_name'])
+		except Exception as e:
+			if github_latest_version["message"][:23] == "API rate limit exceeded":
 				r = requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"]
 				log(f"	[WARN] Could not retreive latest GitHub release version due to exceeding API limit. It wil reset in {round((r - datetime.now().timestamp())/60, 1)} minutes.")
 			else:
-				log(f"	[WARN] Could not retreive latest GitHub release version...")
+				log(f"	[WARN] Could not retreive latest GitHub release version. {repr(e)}")
 			exit()
 		try:
 			if github_version:
