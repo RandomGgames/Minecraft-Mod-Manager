@@ -2,7 +2,6 @@ import time
 from datetime import datetime
 import json
 import os
-import zipfile
 import requests
 import shutil
 from zipfile import ZipFile
@@ -81,11 +80,6 @@ def main():
 	log(f"[{datetime.now()}] RUNNING RMMUD")
 
 	"""
-	CHECKING FOR UPDATE
-	"""
-	checkForScriptUpdate()
-
-	"""
 	LOAD CONFIG
 	"""
 	log("[INFO] LOADING CONFIG:")
@@ -94,6 +88,7 @@ def main():
 			config = json.load(f)
 			download_mods_location = config["download_mods_location"]
 			instances = config["instances"]
+			check_for_updates = config["check_for_rmmud_updates"]
 			headers = {"Accept": "application/json", "x-api-key": config["x-api-key"]}
 			log("	Config read successfully.")
 	except Exception as e:
@@ -102,6 +97,11 @@ def main():
 	if not os.path.exists(download_mods_location):
 		os.makedirs(download_mods_location)
 		log(f"	[INFO] Created folder {download_mods_location}")
+
+	"""
+	CHECKING FOR UPDATE
+	"""
+	if check_for_updates: checkForScriptUpdate()
 
 	"""UPDATING/DOWNLOADING MODS"""
 	log("[INFO] PROCESSING LIST OF MODS:")
