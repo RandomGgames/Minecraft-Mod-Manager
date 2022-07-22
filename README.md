@@ -12,15 +12,3 @@ What is RMMUD? RMMUD stands for RandomGgames' Minecraft Mod Updater and Download
 
 # How to use
 **Honestly... Just don't...**
-
-# Features:
-- [x] Fabric Curseforge mods support
-- [x] Fabric Modrinth mods support
-- [x] Auto-delete outdated mods
-
-### Possible future features
-- [ ] Auto-download mod dependencies
-- [ ] Forge Curseforge mods support
-- [ ] Forge Modrinth mods support
-- [ ] CurseForge resource pack support?
-- [ ] Curseforge shaderpack support?
