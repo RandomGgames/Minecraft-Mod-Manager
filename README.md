@@ -11,9 +11,7 @@ What is RMMUD? RMMUD stands for RandomGgames' Minecraft Mod Updater and Download
 - Your own CurseForge API key if using Curseforge links. https://console.curseforge.com/?#/api-keys
 
 # How to use
-- Extract files into a folder
-- Open the "Manager Config.json" file and configure settings
-- Run "Updater.py"
+**Honestly... Just don't...**
 
 # Features:
 - [x] Fabric Curseforge mods support
