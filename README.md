@@ -7,6 +7,7 @@ What is RMMUD? RMMUD stands for RandomGgames' Minecraft Mod Updater and Download
 # Requirements
 - Python 3. https://www.python.org/downloads/
 - Requests library. `pip install requests`
+- YAML library. `pip install pyyaml`
 - Your own CurseForge API key if using Curseforge links. https://console.curseforge.com/?#/api-keys
 
 # How to use
