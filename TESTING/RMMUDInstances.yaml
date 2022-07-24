@@ -1,24 +1,20 @@
-1.19: #An instance name. Can be anything you want for your organization
-  Loader: Fabric #Fabric or Forge. Forge is not supported yet though.
+Blank: #An instance name. Can be anything you want for your organization
+  Loader: #Fabric or Forge. Forge is not supported yet though.
   Enabled: True #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
-  Version: 1.19 #Minecraft version for mods to download
-  Client Dir: ./client_folder
-  Server Dir: ./server_folder
+  Version: #Minecraft version for mods to download
+  Client Directory:
+  Server Directory:
   Client and Server Mods:
-    - https://modrinth.com/mod/fabric-api
-    - https://modrinth.com/mod/modmenu
+    - 
   Client Mods:
-    - https://modrinth.com/mod/grid
-    - https://modrinth.com/mod/inventory-profiles-next
   Server Mods:
-    - https://modrinth.com/mod/tabtps
 
-1.19 Modded: #An instance name. Can be anything you want for your organization
+1: #An instance name. Can be anything you want for your organization
   Loader: Fabric #Fabric or Forge. Forge is not supported yet though.
   Enabled: True #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
   Version: 1.19 #Minecraft version for mods to download
-  Client Dir: ./client_folder
-  Server Dir: ./server_folder
+  Client Directory: ./client_folder
+  Server Directory: ./server_folder
   Client and Server Mods:
     - https://modrinth.com/mod/fabric-api
     - https://modrinth.com/mod/modmenu
@@ -27,8 +23,3 @@
     - https://modrinth.com/mod/inventory-profiles-next
   Server Mods:
     - https://modrinth.com/mod/tabtps
-    - https://modrinth.com/mod/armorstandeditor
-    - https://modrinth.com/mod/repurposed-structures-fabric
-    - https://modrinth.com/mod/editsign
-    - https://modrinth.com/mod/ledger
-    - https://modrinth.com/mod/fabric-language-kotlin
