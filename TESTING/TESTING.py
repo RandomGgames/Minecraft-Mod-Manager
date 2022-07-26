@@ -1,6 +1,7 @@
-from http import client
+from unicodedata import name
 import yaml
 import json
+import os
 
 def loadInstances():
 	print("LOADING INSTANCES...")
@@ -26,11 +27,18 @@ def loadInstances():
 			else:
 				if instance["Enabled"]:
 
-					instance["Loader"] = str(instance["Loader"] or "")
+					instance["Loader"] = str(instance["Loader"] or "").title()
 					instance["Enabled"] = bool(instance["Enabled"])
 					instance["Version"] = str(instance["Version"] or "")
 					instance["Client Directory"] = str(instance["Client Directory"] or "")
 					instance["Server Directory"] = str(instance["Server Directory"] or "")
+
+					replacers = {"$AppData": os.getenv("APPDATA"), "$Documents": os.getenv("USERPROFILE")}
+					keys = ["Client Directory", "Server Directory"]
+					
+					for key in keys:
+						for replace, replacer in replacers.items():
+							instance[key] = instance[key].replace(replace, replacer)
 
 					if not isinstance(instance["Client and Server Mods"], list):
 						instance["Client and Server Mods"] = str(instance["Client and Server Mods"] or "")
@@ -84,13 +92,66 @@ def loadConfig():
 		exit()
 		return
 
+def modsList(instances):
+	print("LOADING MODS...")
+	mods = {}
+	total_loaded_mods = 0
+	for instance_name, instance in instances.items():
+		print(f"	Loading mods from instance \"{instance_name}\"")
+		version = instance["Version"]
+		loader = instance["Loader"]
+		if version not in mods:
+			mods[version] = {}
+		if loader not in mods[version]:
+			mods[version][loader] = {"client_mods": {}, "server_mods": {}}
+			
+		for client_and_server_mod in instance["Client and Server Mods"]:
+			if client_and_server_mod not in mods[version][loader]["client_mods"]:
+				mods[version][loader]["client_mods"][client_and_server_mod] = [instance["Client Directory"]]
+			else:
+				if instance["Client Directory"] not in mods[version][loader]["client_mods"][client_and_server_mod]:
+					mods[version][loader]["client_mods"][client_and_server_mod].append(instance["Client Directory"])
+			if client_and_server_mod not in mods[version][loader]["server_mods"]:
+				mods[version][loader]["server_mods"][client_and_server_mod] = [instance["Server Directory"]]
+			else:
+				if instance["Server Directory"] not in mods[version][loader]["server_mods"][client_and_server_mod]:
+					mods[version][loader]["server_mods"][client_and_server_mod].append(instance["Server Directory"])
+			total_loaded_mods += 1
+	
+		for client_mod in instance["Client Mods"]:
+			if client_mod not in mods[version][loader]["client_mods"]:
+				mods[version][loader]["client_mods"][client_mod] = [instance["Client Directory"]]
+			else:
+				if instance["Client Directory"] not in mods[version][loader]["client_mods"][client_mod]:
+					mods[version][loader]["client_mods"][client_mod].append(instance["Client Directory"])
+			total_loaded_mods += 1
+
+		for server_mod in instance["Server Mods"]:
+			if server_mod not in mods[version][loader]["server_mods"]:
+				mods[version][loader]["server_mods"][server_mod] = [instance["Server Directory"]]
+			else:
+				if instance["Server Directory"] not in mods[version][loader]["server_mods"][server_mod]:
+					mods[version][loader]["server_mods"][server_mod].append(instance["Server Directory"])
+			total_loaded_mods += 1
+
+	if total_loaded_mods == 1:
+		print(f"	Loaded {total_loaded_mods} mod!")
+	else:
+		print(f"	Loaded {total_loaded_mods} mods!")
+	return mods
+
 def main():
-	config = loadConfig()
-	print(config)
+	#config = loadConfig()
+	#print(json.dumps(config, indent = "\t"))
+	#print(config)
 
 	instances = loadInstances()
-	print(json.dumps(instances, indent = "\t"))
+	#print(json.dumps(instances, indent = "\t"))
 	#print(instances)
+
+	mods = modsList(instances)
+	#print(json.dumps(mods, indent = "\t"))
+	print(mods)
 
 if __name__ == "__main__":
 	main()

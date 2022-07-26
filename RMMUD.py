@@ -30,7 +30,7 @@ def logExit(text, end = "\n"):
 def checkForScriptUpdate():
 	print("[INFO] CHECKING FOR SCRIPT UPDATES:")
 	try:
-		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/MMUD/releases/latest").json()
+		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/RMMUD/releases/latest").json()
 		github_version = str(github_latest_version['tag_name'])
 	except Exception as e:
 		if github_latest_version["message"][:23] == "API rate limit exceeded":
