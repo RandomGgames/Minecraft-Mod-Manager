@@ -10,7 +10,7 @@ Blank: #An instance name. Can be anything you want for your organization
 
 1: #An instance name. Can be anything you want for your organization
   Loader: Fabric #Fabric or Forge. Forge is not supported yet though.
-  Enabled: False #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
+  Enabled: True #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
   Version: 1.19 #Minecraft version for mods to download
   Client Directory: ./client_folder
   Server Directory: ./server_folder

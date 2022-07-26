@@ -84,8 +84,8 @@ def loadConfig():
 		return
 
 def main():
-	#config = loadConfig()
-	#print(config)
+	config = loadConfig()
+	print(config)
 
 	instances = loadInstances()
 	print(instances)
