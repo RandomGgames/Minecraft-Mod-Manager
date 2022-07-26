@@ -14,40 +14,41 @@ def loadInstances():
 		return
 
 	enabled_instances = {}
-	for instance_name, instance in instances.items():
-		keys = ["Loader", "Enabled", "Version", "Client Directory", "Server Directory", "Client and Server Mods", "Client Mods", "Server Mods"]
-		if not all(key in instance.keys() for key in keys):
-			missing_keys = [key for key in keys if key not in instance]
-			if len(missing_keys) == 1:
-				print(f"	[WARN] Cannot load instance \"{instance_name}\". It is missing the key: {missing_keys[0]}")
+	if instances and len(instances) >= 1:
+		for instance_name, instance in instances.items():
+			keys = ["Loader", "Enabled", "Version", "Client Directory", "Server Directory", "Client and Server Mods", "Client Mods", "Server Mods"]
+			if not all(key in instance.keys() for key in keys):
+				missing_keys = [key for key in keys if key not in instance]
+				if len(missing_keys) == 1:
+					print(f"	[WARN] Cannot load instance \"{instance_name}\". It is missing the key: {missing_keys[0]}")
+				else:
+					print(f"	[WARN] Cannot load instance \"{instance_name}\". It is missing the keys: {', '.join(missing_keys)}")
 			else:
-				print(f"	[WARN] Cannot load instance \"{instance_name}\". It is missing the keys: {', '.join(missing_keys)}")
-		else:
-			if instance["Enabled"]:
+				if instance["Enabled"]:
 
-				instance["Loader"] = str(instance["Loader"] or "")
-				instance["Enabled"] = bool(instance["Enabled"])
-				instance["Version"] = str(instance["Version"] or "")
-				instance["Client Directory"] = str(instance["Client Directory"] or "")
-				instance["Server Directory"] = str(instance["Server Directory"] or "")
+					instance["Loader"] = str(instance["Loader"] or "")
+					instance["Enabled"] = bool(instance["Enabled"])
+					instance["Version"] = str(instance["Version"] or "")
+					instance["Client Directory"] = str(instance["Client Directory"] or "")
+					instance["Server Directory"] = str(instance["Server Directory"] or "")
 
-				if not isinstance(instance["Client and Server Mods"], list):
-					instance["Client and Server Mods"] = str(instance["Client and Server Mods"] or "")
-					instance["Client and Server Mods"] = [instance["Client and Server Mods"]]
-				instance["Client and Server Mods"] = list(str(i) for i in instance["Client and Server Mods"] if i != None)
+					if not isinstance(instance["Client and Server Mods"], list):
+						instance["Client and Server Mods"] = str(instance["Client and Server Mods"] or "")
+						instance["Client and Server Mods"] = [instance["Client and Server Mods"]]
+					instance["Client and Server Mods"] = list(str(i) for i in instance["Client and Server Mods"] if i != None and i != "")
 
-				if not isinstance(instance["Client Mods"], list):
-					instance["Client Mods"] = str(instance["Client Mods"] or "")
-					instance["Client Mods"] = [instance["Client Mods"]]
-				instance["Client Mods"] = list(str(i) for i in instance["Client Mods"] if i != None)
+					if not isinstance(instance["Client Mods"], list):
+						instance["Client Mods"] = str(instance["Client Mods"] or "")
+						instance["Client Mods"] = [instance["Client Mods"]]
+					instance["Client Mods"] = list(str(i) for i in instance["Client Mods"] if i != None and i != "")
 
-				if not isinstance(instance["Server Mods"], list):
-					instance["Server Mods"] = str(instance["Server Mods"] or "")
-					instance["Server Mods"] = [instance["Server Mods"]]
-				instance["Server Mods"] = list(str(i) for i in instance["Server Mods"] if i != None)
+					if not isinstance(instance["Server Mods"], list):
+						instance["Server Mods"] = str(instance["Server Mods"] or "")
+						instance["Server Mods"] = [instance["Server Mods"]]
+					instance["Server Mods"] = list(str(i) for i in instance["Server Mods"] if i != None and i != "")
 
-				print(f"	Loaded instance \"{instance_name}\".")
-				enabled_instances[instance_name] = instance
+					print(f"	Loaded instance \"{instance_name}\".")
+					enabled_instances[instance_name] = instance
 
 	if len(enabled_instances) == 1:
 		print(f"	Done loading {len(enabled_instances)} instance.")
@@ -88,7 +89,8 @@ def main():
 	print(config)
 
 	instances = loadInstances()
-	print(instances)
+	print(json.dumps(instances, indent = "\t"))
+	#print(instances)
 
 if __name__ == "__main__":
 	main()
