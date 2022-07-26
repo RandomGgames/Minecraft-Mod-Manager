@@ -1,4 +1,3 @@
-from marshmallow import missing
 import yaml
 import json
 
@@ -23,11 +22,6 @@ def loadInstances():
 			else:
 				print(f"[WARN] Cannot load instance \"{instance_name}\". It is missing the keys: {', '.join(missing_keys)}")
 		else:
-			print("Found all keys")
-
-			if isinstance(instance["Loader"], str):
-				print("Enabled is a string")
-
 			if instance["Enabled"]:
 				enabled_instances[instance_name] = instance
 	
