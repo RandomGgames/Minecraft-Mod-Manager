@@ -30,19 +30,25 @@ def loadInstances():
 				instance["Version"] = str(instance["Version"] or "")
 				instance["Client Directory"] = str(instance["Client Directory"] or "")
 				instance["Server Directory"] = str(instance["Server Directory"] or "")
-				
-				if isinstance(instance["Client and Server Mods"], str):
-					instance["Client and Server Mods"] = [str(instance["Client and Server Mods"])]
-				
 
-				
-				print(f"	{instance['Client and Server Mods'] = }")
-				#instance["Client and Server Mods"] = [] if instance["Client and Server Mods"] is None else list(instance["Client and Server Mods"])
-				#instance["Client and Server Mods"] = [str(i) for i in instance["Client and Server Mods"] if i]
-				
+				if not isinstance(instance["Client and Server Mods"], list):
+					instance["Client and Server Mods"] = str(instance["Client and Server Mods"] or "")
+					instance["Client and Server Mods"] = [instance["Client and Server Mods"]]
+				instance["Client and Server Mods"] = list(str(i) for i in instance["Client and Server Mods"] if i != None)
+
+				if not isinstance(instance["Client Mods"], list):
+					instance["Client Mods"] = str(instance["Client Mods"] or "")
+					instance["Client Mods"] = [instance["Client Mods"]]
+				instance["Client Mods"] = list(str(i) for i in instance["Client Mods"] if i != None)
+
+				if not isinstance(instance["Server Mods"], list):
+					instance["Server Mods"] = str(instance["Server Mods"] or "")
+					instance["Server Mods"] = [instance["Server Mods"]]
+				instance["Server Mods"] = list(str(i) for i in instance["Server Mods"] if i != None)
+
 				print(f"	Loaded instance \"{instance_name}\".")
 				enabled_instances[instance_name] = instance
-	
+
 	if len(enabled_instances) == 1:
 		print(f"	Done loading {len(enabled_instances)} instance.")
 	else:
@@ -64,11 +70,11 @@ def loadConfig():
 				print(f"	[WARN] Cannot load config due to missing keys: {', '.join(missing_keys)}")
 			exit()
 			return
-		
+
 		downloads_location = str(config["Download Mods Location"] or "")
 		enable_rmmud_updates = bool(config["Check for RMMUD Updates"])
 		curseforge_api_key = str(config["CurseForge API Key"] or "")
-		
+
 		print(f"	Done reading config.")
 		return {"download_mods_location": downloads_location, "check_for_updates": enable_rmmud_updates, "headers": {"Accept": "application/json", "x-api-key": curseforge_api_key}}
 
@@ -82,7 +88,7 @@ def main():
 	#print(config)
 
 	instances = loadInstances()
-	#print(instances)
+	print(instances)
 
 if __name__ == "__main__":
 	main()
