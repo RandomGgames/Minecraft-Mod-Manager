@@ -1,0 +1,3 @@
+url = "https://modrinth.com/mod/fabric-api"
+url = url.rsplit("/", 2)
+print(url)
