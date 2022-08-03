@@ -8,7 +8,6 @@ import time
 import yaml
 run_time = datetime.now().strftime("%Y-%m-%d")
 
-CHECK_FOR_UPDATES = True
 VERSION = "3.6WIP" #DO NOT CHANGE THIS YOURSELF!
 
 class style:
@@ -30,22 +29,22 @@ def debug(text):
 class log:
 	def header(text):
 		print(f"{style.BOLD}{style.CYAN}{text}{style.RESET}")
-		
+
 	def info(text):
 		print(f"{style.BLUE}{text}{style.RESET}")
-		
+
 	def completed(text):
 		print(f"{style.GREEN}{text}{style.RESET}")
-		
+
 	def special(text):
 		print(f"{style.PURPLE}{text}{style.RESET}")
-	
+
 	def warn(text):
 		print(f"{style.YELLOW}{text}{style.RESET}")
 
 	def err(text):
 		print(f"{style.RED}{text}{style.RESET}")
-		
+
 	def exit(text):
 		log.err(text)
 		log.toFile(text)
@@ -57,53 +56,53 @@ class log:
 		with open(f"RMMUDLogs/{run_time}.log", "a", encoding = "UTF-8") as file: file.write(f"{str(text)}\n")
 		with open(f"RMMUDLogs/latest.log", "a", encoding = "UTF-8") as file: file.write(f"{str(text)}\n")
 
+class github:
+	def checkForGithubUpdate(enabled):
+		log.header("CHECKING FOR SCRIPT UPDATES:")
+		try:
+			github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/RMMUD/releases/latest").json()
+			#debug(f"github_latest_version = {json.dumps(github_latest_version)}")
+			github_version = str(github_latest_version['tag_name'])
+		except Exception as e:
+			if github_latest_version["message"][:23]  == "API rate limit exceeded":
+				reset_time = round((requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"] - datetime.now().timestamp()) / 60, 1)
+				log.warn(f"	[WARN] Could not retreive latest GitHub release version due to exceeding API limit. It wil reset in {reset_time} minutes. Canceling auto-update.")
+			else:
+				log.warn(f"	[WARN] Could not retreive latest GitHub release version. Canceling auto-update. {repr(e)}")
+			return
 
-def checkForGithubUpdate():
-	log.header("CHECKING FOR SCRIPT UPDATES:")
-	try:
-		github_latest_version = requests.get("https://api.github.com/repos/RandomGgames/RMMUD/releases/latest").json()
-		#debug(f"github_latest_version = {json.dumps(github_latest_version)}")
-		github_version = str(github_latest_version['tag_name'])
-	except Exception as e:
-		if github_latest_version["message"][:23]  == "API rate limit exceeded":
-			reset_time = round((requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"] - datetime.now().timestamp()) / 60, 1)
-			log.warn(f"	[WARN] Could not retreive latest GitHub release version due to exceeding API limit. It wil reset in {reset_time} minutes. Canceling auto-update.")
-		else:
-			log.warn(f"	[WARN] Could not retreive latest GitHub release version. Canceling auto-update. {repr(e)}")
-		return
+		if VERSION  == github_version:
+			log.info(f"	You have the latest release!")
+		elif len(VERSION) > 3 and VERSION[:3] <= github_version:
+			log.warn(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
+			github.downloadLatestGithubRelease(github_latest_version)
+		elif len(VERSION) > 3 and not VERSION[:3] <= github_version:
+			log.special(f"	Working on a new release ay? Good luck!")
+		elif VERSION < github_version:
+			log.warn(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
+			github.downloadLatestGithubRelease(github_latest_version)
+		elif VERSION > github_version:
+			log.special(f"	Your updater is... wait... says here that I am more up to date than the latest release? How did you manage to do that...? HOW??")
 
-	if VERSION  == github_version:
-		log.info(f"	You have the latest release!")
-	elif len(VERSION) > 3 and VERSION[:3] <= github_version:
-		log.warn(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
-		downloadLatestGithubRelease(github_latest_version)
-	elif len(VERSION) > 3 and not VERSION[:3] <= github_version:
-		log.special(f"	Working on a new release ay? Good luck!")
-	elif VERSION < github_version:
-		log.warn(f"	Your updater is out of date ({VERSION} vs {github_version}). Updating now!")
-		downloadLatestGithubRelease(github_latest_version)
-	elif VERSION > github_version:
-		log.special(f"	Your updater is... wait... says here that I am more up to date than the latest release? How did you manage to do that...? HOW??")
+	def downloadLatestGithubRelease(github_data):
+		rmmud_data = [asset for asset in github_data["assets"] if asset["name"]  == "RMMUD.py"]
+		try:
+			rmmud_data[0]
+		except:
+			log.warn(f"	[WARN] Error retreiving RMMUD.py asset from GitHub. Canceling auto-update.")
+			return
 
-def downloadLatestGithubRelease(github_data):
-	rmmud_data = [asset for asset in github_data["assets"] if asset["name"]  == "RMMUD.py"]
-	try:
-		rmmud_data[0]
-	except:
-		log.warn(f"	[WARN] Error retreiving RMMUD.py asset from GitHub. Canceling auto-update.")
-		return
+		download_url = rmmud_data["browser_download_url"]
+		file_name = rmmud_data["name"]
 
-	download_url = rmmud_data["browser_download_url"]
-	file_name = rmmud_data["name"]
-
-	log.info(f"	Downloading RMMUD.py...")
-	try:
-		open(file_name, "wb").write(requests.get(download_url).content).close()
-		log.info(f"	Downloaded {file_name} V{github_data['tag_name']}")
-		import RMMUD
-		exit()
-	except Exception as e:
-		log.warn(f"	[WARN] Error downloading RMMUD.py. Canceling auto-update. {repr(e)}")
+		log.info(f"	Downloading RMMUD.py...")
+		try:
+			open(file_name, "wb").write(requests.get(download_url).content).close()
+			log.info(f"	Downloaded {file_name} V{github_data['tag_name']}")
+			import RMMUD
+			exit()
+		except Exception as e:
+			log.warn(f"	[WARN] Error downloading RMMUD.py. Canceling auto-update. {repr(e)}")
 
 def loadInstances():
 	log.header(f"LOADING INSTANCES...")
@@ -113,7 +112,7 @@ def loadInstances():
 			f.close()
 	except Exception as e:
 		log.exit(f"	[WARN] Could not load instances file. {repr(e)}")
-		
+
 	enabled_instances = {}
 	if instances and len(instances) >= 1:
 		for instance_name, instance in instances.items():
@@ -136,7 +135,7 @@ def loadInstances():
 
 					replacers = {"$AppData": os.getenv("APPDATA"), "$Documents": os.getenv("USERPROFILE")}
 					keys = ["Client Directory", "Server Directory"]
-					
+
 					for key in keys:
 						for replace, replacer in replacers.items():
 							instance[key] = instance[key].replace(replace, replacer)
@@ -159,7 +158,7 @@ def loadInstances():
 					enabled_instances[instance_name] = instance
 
 				else:
-					log.info(f"	Ignoring disabled instance \"{instance_name}\".")
+					log.info(f"	Ignoring instance \"{instance_name}\".")
 
 	if len(enabled_instances)  == 1:
 		log.completed(f"	Done loading {len(enabled_instances)} instance.")
@@ -200,19 +199,19 @@ def modsList(instances):
 	mods = {}
 	total_loaded_mods = 0
 	for instance_name, instance in instances.items():
-		log.info(f"	Loading mods from instance \"{instance_name}\"...")
 		loader = str(instance["Loader"])
 		version = str(instance["Version"])
 		if loader not in mods:
 			mods[loader] = {}
 		if version not in mods[loader]:
 			mods[loader][version] = {}
-		
+
 		for section in [i for i in instance if isinstance(instance[i], list)]:
 			#debug(f"	{section = }")
 			for mod in instance[section]:
 				#debug(f"	{mod = }")
 				if mod not in mods[loader][version]:
+					log.info(f"	Loading url \"{mod}\"...")
 					mods[loader][version][mod] = []
 				loaded_mod = False
 				if section  == "Client and Server Mods" or section  == "Client Mods":
@@ -224,7 +223,6 @@ def modsList(instances):
 						mods[loader][version][mod].append(instance["Server Directory"])
 						loaded_mod = True
 				if loaded_mod: total_loaded_mods += 1
-
 	if total_loaded_mods  == 1:
 		log.completed(f"	Loaded {total_loaded_mods} mod.")
 	else:
@@ -232,44 +230,149 @@ def modsList(instances):
 	return mods
 
 def downloadMods(mods, config):
-	log.header(f"DOWNLOADING MODS...")
-	cache = {}
-	#debug(f"	mods = {json.dumps(mods)}")
-	#debug(f"	config = {json.dumps(config)}")
-	for loader in mods:
-		if loader not in cache:
-			cache[loader] = {}
-		#debug(f"	{loader = }")
-		for version in mods[loader]:
-			if version not in cache[loader]:
-				cache[loader][version] = {}
-			#debug(f"	{version = }")
-			for mod in mods[loader][version]:
-				debug(f"	{mod = }")
-				pass
-	debug(f"	cache = {json.dumps(cache)}")
+		log.header(f"DOWNLOADING MODS...")
+		cache = {}
+		#debug(f"	mods = {json.dumps(mods)}")
+		#debug(f"	config = {json.dumps(config)}")
 
-def downloadModrinthMod():
+		def fabricModrinth(url, config):
+			pass
+		
+		for loader in mods:
+			#debug(f"	{loader = }")
+			if loader not in cache:
+				cache[loader] = {}
+			for version in mods[loader]:
+				#debug(f"	{version = }")
+				if version not in cache[loader]:
+					cache[loader][version] = {}
+				for url in mods[loader][version]:
+					log.info(f"	Processing {url}")
+					try:
+						if url[-1]  == "/": url = url[:-1] #Remove trailing / from link sif it has one at the end
+					except: pass
+
+					if url.startswith("https://modrinth.com"):
+						debug(f"	{url.startswith('https://modrinth.com') = }")
+					
+					
+					
+					#if link[0:25]  == "https://modrinth.com/mod/" and link[25:len(link)] != "":
+					#	slug = link[25:len(link)]
+					#	if not any(x in slug for x in ["/", " ", "\\"]):
+					#		log.info(f"		Processing: {slug}")
+							
+							
+							
+							
+							
+							
+#							if link not in cache or version not in cache[link]['versions']:
+#								#log.info(f"			Caching {slug} for {version}...")
+#								try:
+#									modrinth_versions = requests.get(f'https://api.modrinth.com/v2/project/{slug}/version?game_versions = ["{version}"]&loaders = ["{loader}"]').json()
+#									if len(modrinth_versions) > 0:
+#										latest_modrinth_version = modrinth_versions[0]
+#										files = latest_modrinth_version["files"]
+#										if any(file["primary"] for file in files):
+#											files = [file for file in files if file["primary"]  == True]
+#										file_name = files[0]['filename']
+#										download_url = files[0]['url']
+#										if not os.path.exists(f'{download_mods_location}/{loader}/{version}/{file_name}'):
+#											try:
+#												open(f"{download_mods_location}/{loader}/{version}/{file_name}", "wb").write(requests.get(download_url).content)
+#												log.info(f"			Downloaded {file_name} to {download_mods_location}/{loader}/{version}")
+#											except Exception as e:
+#												log.info(f"			[WARN] Could not download file. {repr(e)}")
+#										cache[link] = {"versions": {}}
+#										cache[link]["versions"][version] = f"{download_mods_location}/{loader}/{version}/{file_name}"
+#									else: log.info(f"			[WARN] Cannot find any {version} compatable versions of this mod.")
+#								except Exception as e:
+#									log.info(f"			[WARN] Cannot access the Modrinth API.")
+#							if link in cache:
+#								if not os.path.exists(f"{mods_directory}/{os.path.basename(cache[link]['versions'][version])}"):
+#									try:
+#										shutil.copyfile(cache[link]["versions"][version], f"{mods_directory}/{os.path.basename(cache[link]['versions'][version])}")
+#										log.info(f"			Copied \"{cache[link]['versions'][version]}\" into \"{mods_directory}\"")
+#									except Exception as e:
+#										log.info(f"			[WARN] Something went wrong copying \"{cache[link]['versions'][version]}\" into \"{mods_directory}\". {repr(e)}")
+#								else: log.info(f"			{slug} is already up to date.")
+#							else: log.info(f'		[WARN] Invlalid slug: "{slug}"')
+#						else: log.warn(f"	[WARN] Links must be to a mod page. {link} is not a valid mod page link.")
+#									if link[0:45]  == "https://www.curseforge.com/minecraft/mc-mods/":
+#										if link[45:len(link)] != "":
+#											slug = link[45:len(link)]
+#											if not any(x in slug for x in ["/", " ", "\\"]):
+#												log.info(f"		Processing: {slug}")
+#												if link not in cache or version not in cache[link]['versions']:
+#													#log.info(f"			Caching {slug} for {version}...")
+#													try:
+#														curseforge_mod = requests.get("https://api.curseforge.com/v1/mods/search", params = {"gameId": "432","slug": slug, "classId": "6"}, headers = headers).json()["data"]
+#														if len(curseforge_mod) > 0:
+#															curseforge_id = curseforge_mod[0]["id"]
+#															curseforge_files = requests.get(f"https://api.curseforge.com/v1/mods/{curseforge_id}/files", params = {"gameVersion": version, "modLoaderType": curseforge_modLoaderType}, headers = headers).json()["data"]
+#															if len(curseforge_files) > 0:
+#																curseforge_files = list(file for file in curseforge_files if version in file["gameVersions"])
+#																latest_curseforge_file = curseforge_files[0]
+#																file_name = latest_curseforge_file["fileName"]
+#																download_url = latest_curseforge_file["downloadUrl"]
+#																if download_url  == None:
+#																	download_url = f"https://edge.forgecdn.net/files/{str(latest_curseforge_file['id'])[0:4]}/{str(latest_curseforge_file['id'])[4:7]}/{file_name}"
+#																	pass
+#																if not os.path.exists(f"{download_mods_location}/{loader}/{version}/{file_name}"):
+#																	try:
+#																		open(f"{download_mods_location}/{loader}/{version}/{file_name}", "wb").write(requests.get(download_url).content)
+#																		log.info(f"			Downloaded {file_name} to {download_mods_location}/{loader}/{version}")
+#																	except Exception as e:
+#																		log.info(f"			[WARN] Could not download file. {repr(e)}")
+#																cache[link] = {"versions": {}}
+#																cache[link]["versions"][version] = f"{download_mods_location}/{loader}/{version}/{file_name}"
+#															else: log.info(f"			[WARN] Cannot find any {version} compatable versions of this mod.")
+#														else:
+#															log.info(f"		[WARN] Could not find mod {slug}. Make sure the url {link} is valid and not a redirect!")
+#													except Exception as e:
+#														log.info(f"			[WARN] Cannot access the CurseForge API.")
+#												if link in cache:
+#													if not os.path.exists(f"{mods_directory}/{os.path.basename(cache[link]['versions'][version])}"):
+#														try:
+#															shutil.copyfile(cache[link]["versions"][version], f"{mods_directory}/{os.path.basename(cache[link]['versions'][version])}")
+#															log.info(f"			Copied \"{cache[link]['versions'][version]}\" into \"{mods_directory}\"")
+#														except Exception as e:
+#															log.info(f"			[WARN] Something went wrong copying \"{cache[link]['versions'][version]}\" into \"{mods_directory}\". {repr(e)}")
+#													else: log.info(f"			{slug} is already up to date.")
+#											else: log.info(f'		[WARN] Invlalid slug: "{slug}"')
+#										else: log.warn(f"	[WARN] Links must be to a mod page. {link} is not a valid mod page link.")
+#							elif loader  == "forge":
+#								curseforge_modLoaderType = 1
+#								log.warn(f"	[WARN] Script does not currently support {loader} mods yet. Ignoring instance {instance_text}.")
+#							else:
+#								log.warn(f"	[WARN] Script does not support {loader} mods. Ignoring instance {instance_text}. Suggest support via github under the issue tracker https://github.com/RandomGgames/MMUD")
+
+
+
+
+		debug(f"	cache = {json.dumps(cache)}")
+
+def downloadFabricModrinthMod():
 	pass
 
 def main():
 	if os.path.exists("RMMUDLogs/latest.log"): open("RMMUDLogs/latest.log", "w").close() #Clears latest.log
 	log.info(f"[{datetime.now()}] RUNNING RMMUD")
-	
+
 	config = loadConfig()
 	#debug(f"	{config = }")
 
-	if config["check_for_updates"]:
-		checkForGithubUpdate()
+	if config["check_for_updates"]: github.checkForGithubUpdate()
 
 	instances = loadInstances()
 	#debug(f"	{instances = }")
-	
+
 	mods = modsList(instances)
-	#debug(f"	mods = {json.dumps(mods)}")
-	
+	debug(f"	mods = {json.dumps(mods)}")
+
 	downloadMods(mods, config)
-	
+
 	#
 	#"""
 	#LOAD CONFIG

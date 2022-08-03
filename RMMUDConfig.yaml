@@ -1,3 +1,3 @@
 Download Mods Location: RMMUDDownloads #File directory of where mods are downloaded into than distributed to instances
 CurseForge API Key: #Your CurseForge API key. Only required if using CurseForge links. https://console.curseforge.com/?#/api-keys (sign in with google, click API keys on the left, and copy paste key)
-Check for RMMUD Updates: True #True or False. Turns on or off automatic RMMUD updates, auto downloading from GitHub
+Check for RMMUD Updates: False #True or False. Turns on or off automatic RMMUD updates, auto downloading from GitHub

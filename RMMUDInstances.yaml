@@ -1,9 +1,9 @@
-Template: #An instance name. Can be anything you want for your organization
+One: #An instance name. Can be anything you want for your organization
   Enabled: False #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
   Loader: Fabric #Fabric or Forge. Forge is not supported yet though.
   Version: 1.19 #Minecraft version for mods to download
-  Client Directory: ClientDir
-  Server Directory: ServerDir
+  Client Directory: clientDir1
+  Server Directory: serverDir1
   Client and Server Mods:
     - https://modrinth.com/mod/fabric-api
     - https://modrinth.com/mod/lithium
@@ -18,12 +18,12 @@ Template: #An instance name. Can be anything you want for your organization
     - https://modrinth.com/mod/tabtps
     - https://modrinth.com/mod/universal-graves
 
-Testing: #An instance name. Can be anything you want for your organization
+Two: #An instance name. Can be anything you want for your organization
   Enabled: True #True or False. Whether or not mods in this list will be updated or downloaded when RMMUD is run.
   Loader: Fabric #Fabric or Forge. Forge is not supported yet though.
   Version: 1.19 #Minecraft version for mods to download
-  Client Directory: ClientDir
-  Server Directory: ServerDir
+  Client Directory: clientDir2
+  Server Directory: serverDir2
   Client and Server Mods:
     - https://modrinth.com/mod/sodium
     - https://modrinth.com/mod/fabric-api
